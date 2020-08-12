@@ -55,6 +55,22 @@ classes = ('plane', 'car', 'bird', 'cat',
            'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 
+model = nn.Sequential(
+    nn.Conv2d(3, 6, 5),
+    nn.ReLU(),
+    nn.MaxPool2d(2, 2),
+    nn.Conv2d(6, 16, 5),
+    nn.ReLU(),
+    nn.MaxPool2d(2, 2),
+    nn.Linear(16 * 5 * 5, 120),
+    nn.ReLU(),
+    nn.Linear(120, 84),
+    nn.ReLU(),
+    nn.Linear(84, 42),
+    nn.ReLU(),
+    nn.Linear(42, 10),
+)
+
 net = Net()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
@@ -67,7 +83,8 @@ for epoch in range(10):
         print(labels, end='\r')
         optimizer.zero_grad()
         
-        outputs = net(inputs)   # 순전파
+        # outputs = net(inputs)   # 순전파
+        outputs = model(inputs)
         loss = criterion(outputs, labels)   # cost
         loss.backward()     # 역전파
         optimizer.step()    # 반영
