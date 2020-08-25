@@ -10,7 +10,7 @@ import torchvision
 from torchvision import transforms
 from torch import optim
 
-BATCH_SIZE = 64
+BATCH_SIZE = 50
 
 transform = transforms.Compose([transforms.ToTensor()])
 
@@ -37,7 +37,7 @@ class ImageRNN(nn.Module):
         self.n_neurons = n_neurons
         self.n_outputs = n_outputs
 
-        self.basic_rnn = nn.RNN(self.n_inputs, self.n_neurons)
+        self.basic_rnn = nn.RNN(self.n_inputs, self.n_neurons, batch_first=True)
         self.FC = nn.Linear(self.n_neurons, self.n_outputs)
         self.hidden = self.init_hidden()
 
@@ -45,20 +45,19 @@ class ImageRNN(nn.Module):
         return torch.zeros(1, self.batch_size, self.n_neurons)
 
     def forward(self, x):
-        x = x.permute(1, 0, 2)
-        self.batch_size = x.size(1)
         self.hidden = self.init_hidden()
 
-        lstm_out, self.hidden = self.basic_rnn(x, self.hidden)
-        out = self.FC(self.hidden)
+        rnn_out, self.hidden = self.basic_rnn(x, self.hidden)
+        out = self.FC(self.hidden)          # moore Machine
 
         return out.view(-1, self.n_outputs)
 
 
-dataiter = iter(trainloader)
-images, labels = dataiter.next()
+#dataiter = iter(trainloader)
+#images, labels = dataiter.next()
+#logits = model(images.view(-1, 28, 28))
+
 model = ImageRNN(BATCH_SIZE, N_STEPS, N_INPUTS, N_NEURONS, N_OUTPUTS)
-logits = model(images.view(-1, 28, 28))
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 device = torch.device('cpu')
@@ -79,7 +78,6 @@ for epoch in range(N_EPHOCS):
         model.hidden = model.init_hidden()
         input_im, labels = data
         inputs = input_im.view(-1, 28, 28)
-
         outputs = model(inputs)
 
         loss = criterion(outputs, labels)
@@ -88,7 +86,7 @@ for epoch in range(N_EPHOCS):
 
         train_running_loss += loss.detach().item()
         train_acc += get_accuracy(outputs, labels, BATCH_SIZE)
-        print(f"EPOCH: {epoch} | LOSS: {train_running_loss / i:.4f} | ACCURACY: {train_acc / i}", end='\r')
+        print(f"EPOCH: {epoch} | LOSS: {train_running_loss / i:.4f} | ACCURACY: {train_acc / i}", end='\n')
     model.eval()
     print()
 
