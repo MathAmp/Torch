@@ -69,26 +69,28 @@ def get_accuracy(logit, target, batch_size):
     return accuracy.item()
 
 
-for epoch in range(N_EPHOCS):
-    train_running_loss = 0.0
-    train_acc = 0.0
-    model.train()
-    for i, data in enumerate(trainloader, 1):
-        optimizer.zero_grad()
-        model.hidden = model.init_hidden()
-        input_im, labels = data
-        inputs = input_im.view(-1, 28, 28)
-        outputs = model(inputs)
+def run():
+    for epoch in range(N_EPHOCS):
+        train_running_loss = 0.0
+        train_acc = 0.0
+        model.train()
+        for i, data in enumerate(trainloader, 1):
+            optimizer.zero_grad()
+            model.hidden = model.init_hidden()
+            input_im, labels = data
+            inputs = input_im.view(-1, 28, 28)
+            outputs = model(inputs)
 
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
+            print(f"{outputs=}\n{outputs.size()}\n{labels=}\n{labels.size()}")
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
 
-        train_running_loss += loss.detach().item()
-        train_acc += get_accuracy(outputs, labels, BATCH_SIZE)
-        print(f"EPOCH: {epoch} | LOSS: {train_running_loss / i:.4f} | ACCURACY: {train_acc / i}", end='\n')
-    model.eval()
-    print()
+            train_running_loss += loss.detach().item()
+            train_acc += get_accuracy(outputs, labels, BATCH_SIZE)
+            print(f"EPOCH: {epoch} | LOSS: {train_running_loss / i:.4f} | ACCURACY: {train_acc / i}", end='\n')
+        model.eval()
+        print()
 
 
 def imshow(img):
